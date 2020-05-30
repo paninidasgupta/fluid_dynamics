@@ -1,2 +1,2 @@
 # fluid_dynamics
-Codes for deriving the dynamical parameters from basic dynamical paramaters
+We can derive the essential dynamical parameters (divergence, vorticity, advection, and moisture flux convergence ) from the primary dynamical variables.
