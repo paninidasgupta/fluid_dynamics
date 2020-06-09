@@ -100,6 +100,7 @@ def hdivergence_xarray(uname,vname,sellevel='all',uvarname='uwnd',vvarname='vwnd
     
     dua = check_lat(uname,uvarname)
     dva = check_lat(vname,vvarname)
+    
     if sellevel=='all':
         
         u      =  dua[uvarname].values
@@ -114,6 +115,20 @@ def hdivergence_xarray(uname,vname,sellevel='all',uvarname='uwnd',vvarname='vwnd
 
         div_ds = xr.Dataset({'DIV': (('time','level','lat','lon'), DIV)}, coords={'time': dua.time,'level':dua.level,'lat': dua.lat,'lon': dua.lon})
 
+    elif sellevel=='None':
+        
+        u = dua[uvarname].values
+        v = dva[vvarname].values
+        grid  =  [dua.lat.values,dua.lon.values]
+
+        if u.shape!=v.shape:
+            raise ValueError("Dimension_mismatch between U and V")
+            return
+
+        DIV = hdivergence(u,v,grid)
+
+        div_ds = xr.Dataset({'DIV': (('time', 'lat','lon'), DIV)}, coords={'time': dua.time,'lat': dua.lat,'lon': dua.lon})
+    
     else:
         u = dua.sel(level=sellevel)[uvarname].values
         v = dva.sel(level=sellevel)[vvarname].values
@@ -161,7 +176,23 @@ def hvorticity_xarray(uname,vname,sellevel='all',uvarname='uwnd',vvarname='vwnd'
 
         vor_ds = xr.Dataset({'VOR': (('time','level','lat','lon'), VOR)}, coords={'time': dua.time,'level':dua.level,'lat': dua.lat,'lon': dua.lon})
 
+    elif sellevel == 'None':
+        
+        u = dua[uvarname].values
+        v = dva[vvarname].values
+        grid  =  [dua.lat.values,dua.lon.values]
+        
+        if u.shape!=v.shape:
+            raise ValueError("Dimension_mismatch between U and V")
+            return
+        print(u.shape)
+
+        VOR = hvorticity(u,v,grid)
+
+        vor_ds = xr.Dataset({'VOR': (('time', 'lat','lon'), VOR)}, coords={'time': dua.time,'lat': dua.lat,'lon': dua.lon})
+    
     else:
+        
         u = dua.sel(level=sellevel)[uvarname].values
         v = dva.sel(level=sellevel)[vvarname].values
         grid  =  [dua.lat.values,dua.lon.values]
@@ -174,7 +205,8 @@ def hvorticity_xarray(uname,vname,sellevel='all',uvarname='uwnd',vvarname='vwnd'
         VOR = hvorticity(u,v,grid)
 
         vor_ds = xr.Dataset({'VOR': (('time', 'lat','lon'), VOR)}, coords={'time': dua.time,'lat': dua.lat,'lon': dua.lon})
-
+    
+    
     return vor_ds
 
 
@@ -206,7 +238,21 @@ def hadvection_xarray(uname,vname,tname,sellevel='all',tvarname='temperature',uv
         grid   =  [dua.level.values,dua.lat.values,dua.lon.values]
         ADV    =  hadvection(T,u,v,grid)
         adv_ds = xr.Dataset({'ADV': (('time','level', 'lat','lon'), ADV)}, coords={'time': dua.time,'level': dua.level,'lat': dua.lat,'lon': dua.lon})
-
+    
+    
+    elif sellevel=='none':
+        
+        T = dta[tvarname].values
+        u = dua[uvarname].values
+        v = dva[vvarname].values
+        if u.shape!=v.shape:
+            raise ValueError("Dimension_mismatch between U and V")
+            return
+        grid   =  [dua.lat.values,dua.lon.values]
+        ADV    =  hadvection(T,u,v,grid)
+        adv_ds = xr.Dataset({'ADV': (('time', 'lat','lon'), ADV)}, coords={'time': dua.time,'lat': dua.lat,'lon': dua.lon})
+        
+    
     else:
         T = dta.sel(level=sellevel)[tvarname].values
         u = dua.sel(level=sellevel)[uvarname].values
@@ -219,7 +265,6 @@ def hadvection_xarray(uname,vname,tname,sellevel='all',tvarname='temperature',uv
         adv_ds = xr.Dataset({'ADV': (('time', 'lat','lon'), ADV)}, coords={'time': dua.time,'lat': dua.lat,'lon': dua.lon})
     
     return adv_ds
-
 
 def hmfc_xarray(uname,vname,qname,sellevel='all',qvarname='shum',uvarname='uwnd',vvarname='vwnd'):
     
@@ -249,9 +294,20 @@ def hmfc_xarray(uname,vname,qname,sellevel='all',qvarname='shum',uvarname='uwnd'
         grid   =  [dua.level.values,dua.lat.values,dua.lon.values]
         MFC    =  hmfc(q,u,v,grid)
         mfc_ds = xr.Dataset({'MFC': (('time','level', 'lat','lon'), MFC)}, coords={'time': dua.time,'level': dua.level,'lat': dua.lat,'lon': dua.lon})
-
+    
+    elif sellevel=='none':
+        T = dta[tvarname].values
+        u = dua[uvarname].values
+        v = dva[vvarname].values
+        if u.shape!=v.shape:
+            raise ValueError("Dimension_mismatch between U and V")
+            return
+        grid   =  [dua.lat.values,dua.lon.values]
+        MFC    =  hmfc(q,u,v,grid)
+        mfc_ds = xr.Dataset({'MFC': (('time', 'lat','lon'), MFC)}, coords={'time': dua.time,'lat': dua.lat,'lon': dua.lon})    
+        
     else:
-        q = dta.sel(level=sellevel)[qvarname].values
+        T = dta.sel(level=sellevel)[tvarname].values
         u = dua.sel(level=sellevel)[uvarname].values
         v = dva.sel(level=sellevel)[vvarname].values
         if u.shape!=v.shape:
@@ -262,6 +318,7 @@ def hmfc_xarray(uname,vname,qname,sellevel='all',qvarname='shum',uvarname='uwnd'
         mfc_ds = xr.Dataset({'MFC': (('time', 'lat','lon'), MFC)}, coords={'time': dua.time,'lat': dua.lat,'lon': dua.lon})
     
     return mfc_ds
+
 
 
 
